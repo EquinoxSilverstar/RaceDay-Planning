@@ -243,33 +243,6 @@ GO
 BEGIN TRY
     BEGIN TRANSACTION;
 
-    SET IDENTITY_INSERT dbo.Categories ON;
-
-    INSERT INTO dbo.Categories
-        (CategoryId, EventId, Name, Description, DistanceKm, EntryFee, Capacity, MinimumAge, MaximumAge, CategoryStartTime, IsActive)
-    VALUES
-        (1, 1, N'5 km Fun Run', N'Open community run suitable for new runners and families.', 5.00, 120.00, 500, 10, NULL, '07:30:00', 1),
-        (2, 1, N'10 km Road Race', N'Timed 10 km road race.', 10.00, 220.00, 1000, 15, NULL, '07:00:00', 1),
-        (3, 1, N'21.1 km Half Marathon', N'Timed half-marathon for experienced runners.', 21.10, 350.00, 1200, 18, NULL, '06:00:00', 1),
-        (4, 2, N'42 km Recreational Ride', N'Supported recreational route for developing cyclists.', 42.00, 450.00, 800, 15, NULL, '07:00:00', 1),
-        (5, 2, N'109 km Challenge', N'Full peninsula endurance route for experienced cyclists.', 109.00, 750.00, 1500, 18, NULL, '05:30:00', 1),
-        (6, 3, N'5 km Family Walk', N'Accessible family-focused coastal walk.', 5.00, 80.00, 600, 5, NULL, '08:00:00', 1),
-        (7, 3, N'10 km Fitness Walk', N'Brisk timed walking category along the promenade.', 10.00, 140.00, 500, 14, NULL, '07:30:00', 1),
-        (8, 3, N'20 km Endurance Walk', N'Long-distance category for conditioned walkers.', 20.00, 200.00, 300, 18, NULL, '07:00:00', 1);
-
-    SET IDENTITY_INSERT dbo.Categories OFF;
-
-    COMMIT TRANSACTION;
-END TRY
-BEGIN CATCH
-    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
-    THROW;
-END CATCH;
-GO
-
-BEGIN TRY
-    BEGIN TRANSACTION;
-
     SET IDENTITY_INSERT dbo.Events ON;
 
     INSERT INTO dbo.Events
@@ -288,6 +261,33 @@ BEGIN TRY
          '2027-01-15T06:00:00', '2027-04-28T21:59:59', 'Published');
 
     SET IDENTITY_INSERT dbo.Events OFF;
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;
+GO
+
+BEGIN TRY
+    BEGIN TRANSACTION;
+
+    SET IDENTITY_INSERT dbo.Categories ON;
+
+    INSERT INTO dbo.Categories
+        (CategoryId, EventId, Name, Description, DistanceKm, EntryFee, Capacity, MinimumAge, MaximumAge, CategoryStartTime, IsActive)
+    VALUES
+        (1, 1, N'5 km Fun Run', N'Open community run suitable for new runners and families.', 5.00, 120.00, 500, 10, NULL, '07:30:00', 1),
+        (2, 1, N'10 km Road Race', N'Timed 10 km road race.', 10.00, 220.00, 1000, 15, NULL, '07:00:00', 1),
+        (3, 1, N'21.1 km Half Marathon', N'Timed half-marathon for experienced runners.', 21.10, 350.00, 1200, 18, NULL, '06:00:00', 1),
+        (4, 2, N'42 km Recreational Ride', N'Supported recreational route for developing cyclists.', 42.00, 450.00, 800, 15, NULL, '07:00:00', 1),
+        (5, 2, N'109 km Challenge', N'Full peninsula endurance route for experienced cyclists.', 109.00, 750.00, 1500, 18, NULL, '05:30:00', 1),
+        (6, 3, N'5 km Family Walk', N'Accessible family-focused coastal walk.', 5.00, 80.00, 600, 5, NULL, '08:00:00', 1),
+        (7, 3, N'10 km Fitness Walk', N'Brisk timed walking category along the promenade.', 10.00, 140.00, 500, 14, NULL, '07:30:00', 1),
+        (8, 3, N'20 km Endurance Walk', N'Long-distance category for conditioned walkers.', 20.00, 200.00, 300, 18, NULL, '07:00:00', 1);
+
+    SET IDENTITY_INSERT dbo.Categories OFF;
 
     COMMIT TRANSACTION;
 END TRY
@@ -328,4 +328,51 @@ BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
     THROW;
 END CATCH;
+GO
+
+-- Post-deployment checks make seed failures visible in SSMS and CI logs.
+IF (SELECT COUNT(*) FROM dbo.Users WHERE Role = 'Organiser') < 2
+    THROW 50010, 'Seed verification failed: expected at least two organisers.', 1;
+
+IF (SELECT COUNT(*) FROM dbo.Users WHERE Role = 'Participant') < 2
+    THROW 50011, 'Seed verification failed: expected at least two participants.', 1;
+
+IF (SELECT COUNT(*) FROM dbo.Events) < 3
+    THROW 50012, 'Seed verification failed: expected at least three events.', 1;
+
+IF EXISTS
+(
+    SELECT 1
+    FROM dbo.Events AS e
+    INNER JOIN dbo.Users AS u ON u.UserId = e.OrganiserId
+    WHERE u.Role <> 'Organiser'
+)
+    THROW 50013, 'Integrity verification failed: an event owner is not an organiser.', 1;
+
+IF EXISTS
+(
+    SELECT 1
+    FROM dbo.EventEnrollments AS ee
+    INNER JOIN dbo.Users AS u ON u.UserId = ee.ParticipantId
+    WHERE u.Role <> 'Participant'
+)
+    THROW 50014, 'Integrity verification failed: an enrolment owner is not a participant.', 1;
+
+IF EXISTS
+(
+    SELECT 1
+    FROM dbo.Events AS e
+    WHERE NOT EXISTS (SELECT 1 FROM dbo.Categories AS c WHERE c.EventId = e.EventId)
+)
+    THROW 50015, 'Seed verification failed: every event must have at least one category.', 1;
+GO
+
+SELECT
+    (SELECT COUNT(*) FROM dbo.Users) AS Users,
+    (SELECT COUNT(*) FROM dbo.Events) AS Events,
+    (SELECT COUNT(*) FROM dbo.Categories) AS Categories,
+    (SELECT COUNT(*) FROM dbo.EventEnrollments) AS Enrolments,
+    (SELECT COUNT(*) FROM dbo.Results) AS Results;
+
+PRINT 'RaceDayDb created and verified successfully.';
 GO
