@@ -1,0 +1,107 @@
+---
+title: RaceDay Entity Relationship Diagram
+config:
+  theme: base
+  themeVariables:
+    primaryColor: "#eef6ff"
+    primaryBorderColor: "#175b9f"
+    primaryTextColor: "#102a43"
+    lineColor: "#486581"
+    tertiaryColor: "#f0fdf4"
+---
+erDiagram
+    USERS ||--o| PARTICIPANT_PROFILES : "has participant details"
+    USERS ||--o{ EVENTS : "organises"
+    EVENTS ||--|{ CATEGORIES : "offers"
+    USERS ||--o{ EVENT_ENROLLMENTS : "makes as participant"
+    EVENTS ||--o{ EVENT_ENROLLMENTS : "receives"
+    CATEGORIES ||--o{ EVENT_ENROLLMENTS : "selected for"
+    EVENT_ENROLLMENTS ||--o| RESULTS : "receives"
+    USERS ||--o{ RESULTS : "records as organiser"
+
+    USERS {
+        INT UserId PK
+        NVARCHAR Email UK
+        NVARCHAR PasswordHash
+        NVARCHAR FirstName
+        NVARCHAR LastName
+        NVARCHAR PhoneNumber "nullable"
+        VARCHAR Role "Organiser or Participant"
+        BIT IsActive
+        DATETIME2 CreatedAtUtc
+        DATETIME2 UpdatedAtUtc "nullable"
+    }
+
+    PARTICIPANT_PROFILES {
+        INT ParticipantProfileId PK
+        INT UserId FK,UK
+        DATE DateOfBirth
+        VARCHAR Gender
+        NVARCHAR EmergencyContactName
+        NVARCHAR EmergencyContactPhone
+        NVARCHAR MedicalNotes "nullable"
+        NVARCHAR ClubName "nullable"
+    }
+
+    EVENTS {
+        INT EventId PK
+        INT OrganiserId FK
+        NVARCHAR Name
+        NVARCHAR Description
+        VARCHAR EventType
+        DATETIME2 StartDateTime
+        DATETIME2 EndDateTime
+        NVARCHAR TimeZoneId
+        NVARCHAR VenueName
+        NVARCHAR AddressLine1
+        NVARCHAR City
+        VARCHAR Province
+        VARCHAR PostalCode "nullable"
+        DATETIME2 RegistrationOpenUtc
+        DATETIME2 RegistrationCloseUtc
+        VARCHAR Status
+        DATETIME2 CreatedAtUtc
+        DATETIME2 UpdatedAtUtc "nullable"
+    }
+
+    CATEGORIES {
+        INT CategoryId PK
+        INT EventId FK
+        NVARCHAR Name "UK within event"
+        NVARCHAR Description "nullable"
+        DECIMAL DistanceKm
+        DECIMAL EntryFee
+        INT Capacity
+        TINYINT MinimumAge "nullable"
+        TINYINT MaximumAge "nullable"
+        TIME CategoryStartTime "nullable"
+        BIT IsActive
+    }
+
+    EVENT_ENROLLMENTS {
+        INT EnrollmentId PK
+        INT EventId FK
+        INT CategoryId FK
+        INT ParticipantId FK
+        NVARCHAR BibNumber "nullable; UK within event"
+        VARCHAR Status
+        VARCHAR PaymentStatus
+        DECIMAL FeePaid
+        BIT EmergencyConsent
+        DATETIME2 EnrolledAtUtc
+        DATETIME2 UpdatedAtUtc "nullable"
+    }
+
+    RESULTS {
+        INT ResultId PK
+        INT EnrollmentId FK,UK
+        INT RecordedByOrganiserId FK
+        VARCHAR ResultStatus
+        BIGINT DurationMilliseconds "nullable"
+        INT OverallPosition "nullable"
+        INT CategoryPosition "nullable"
+        NVARCHAR Notes "nullable"
+        DATETIME2 RecordedAtUtc
+        DATETIME2 UpdatedAtUtc "nullable"
+    }
+
