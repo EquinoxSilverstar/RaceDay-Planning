@@ -66,3 +66,35 @@ Organiser accounts are provisioned by an authorised administrator or database de
 | `PUT` | `/api/categories/{categoryId}` | Replaces category details. Capacity cannot be reduced below confirmed enrolments. | Organiser (event owner) | Same fields as category creation | `200 OK` with updated category; `400`; `403`; `404`; `409` capacity/lifecycle conflict. |
 | `DELETE` | `/api/categories/{categoryId}` | Deletes a category only when it has no enrolments; otherwise it can be deactivated using `PUT`. | Organiser (event owner) | None | `204 No Content`; `403`; `404`; `409` category has enrolments. |
 
+## 8. Event enrolment endpoints
+
+| HTTP method | Route | Description | Role required | Request body | Expected response |
+|---|---|---|---|---|---|
+| `POST` | `/api/events/{eventId}/enrollments` | Enters the current participant in one category. The API checks registration dates, event/category status, age eligibility, capacity, and the one-enrolment-per-event rule. The category's current fee is copied to `feePaid`. | Participant | `{ categoryId, emergencyConsent }` | `201 Created` with enrolment and `Location`; `400` eligibility/consent validation; `401`; `403`; `404`; `409` already entered or category full. |
+| `GET` | `/api/enrollments/me` | Lists the current participant's upcoming and past enrolments. Supports `status`, `from`, `to`, and pagination. | Participant | None | `200 OK` with paginated enrolments; `400` invalid filters; `401`; `403`. |
+| `GET` | `/api/enrollments/{enrollmentId}` | Returns one enrolment. Participants may view their own; the event owner may view any enrolment in that event. | Participant (self) or Organiser (event owner) | None | `200 OK` with enrolment; `403` not owner; `404` not found. |
+| `PATCH` | `/api/enrollments/{enrollmentId}/withdraw` | Withdraws the current participant before registration closes. A completed or already withdrawn entry cannot be changed. | Participant (self) | `{ reason? }` | `200 OK` with status `Withdrawn`; `403` not owner; `404`; `409` deadline/lifecycle conflict. |
+| `GET` | `/api/events/{eventId}/enrollments` | Lists all event enrolments for administration. Supports `categoryId`, `status`, `paymentStatus`, `search`, and pagination. | Organiser (event owner) | None | `200 OK` with paginated enrolments; `400` filters; `403`; `404` event. |
+| `PATCH` | `/api/enrollments/{enrollmentId}` | Updates organiser-controlled fields such as bib number, enrolment status, and payment status. | Organiser (event owner) | `{ bibNumber?, status?, paymentStatus? }` | `200 OK` with updated enrolment; `400`; `403`; `404`; `409` duplicate bib or invalid transition. |
+
+## 9. Result endpoints
+
+| HTTP method | Route | Description | Role required | Request body | Expected response |
+|---|---|---|---|---|---|
+| `GET` | `/api/events/{eventId}/results` | Lists official event results. Supports `categoryId`, `resultStatus`, participant search, and pagination; defaults to finishers ordered by duration. | None (public for completed events) | None | `200 OK` with paginated results; `400` filters; `403` event results not public; `404` event. |
+| `GET` | `/api/results/{resultId}` | Returns one official result with participant, event, and category summaries. | None (public for completed events) | None | `200 OK` with result; `403` not public; `404` result. |
+| `GET` | `/api/results/me` | Returns the current participant's personal performance history across completed events. | Participant | None | `200 OK` with paginated results; `401`; `403`. |
+| `POST` | `/api/enrollments/{enrollmentId}/result` | Captures the sole official result for an event enrolment. Finished results require duration and both positions; DNF/DNS/DSQ results may omit them. | Organiser (event owner) | `{ resultStatus, durationMilliseconds?, overallPosition?, categoryPosition?, notes? }` | `201 Created` with result and `Location`; `400` inconsistent result fields; `403`; `404` enrolment; `409` result already exists or event not completed. |
+| `PUT` | `/api/results/{resultId}` | Replaces an official result while preserving its enrolment link and recording organiser. | Organiser (event owner) | `{ resultStatus, durationMilliseconds?, overallPosition?, categoryPosition?, notes? }` | `200 OK` with updated result; `400`; `403`; `404`; `409` locked event. |
+| `DELETE` | `/api/results/{resultId}` | Removes an incorrectly captured result during the organiser's correction window. | Organiser (event owner) | None | `204 No Content`; `403`; `404`; `409` correction window closed. |
+
+## 10. Cross-cutting business rules
+
+1. A `Participant` user must have exactly one participant profile; an `Organiser` must not use participant enrolment routes.
+2. An organiser can mutate only events they own and the categories, enrolments, and results beneath those events.
+3. An event can be published only with valid dates and at least one active category.
+4. A participant may enter an event once. Their selected category must belong to that event.
+5. The accepted entry fee is copied from the category when the enrolment is created, preserving a historical amount if the category price later changes.
+6. Database constraints provide the final defence for unique emails, event/category ownership, duplicate event entry, duplicate bibs, and one result per enrolment.
+7. API deletion rules intentionally avoid cascading deletes so assessed and operational history is not lost accidentally.
+
