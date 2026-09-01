@@ -1,0 +1,6 @@
+# Local development artefacts
+work/
+.DS_Store
+Thumbs.db
+*.log
+
