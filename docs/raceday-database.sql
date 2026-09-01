@@ -118,6 +118,7 @@ CREATE TABLE dbo.Categories
     IsActive         BIT NOT NULL CONSTRAINT DF_Categories_IsActive DEFAULT (1),
     CONSTRAINT PK_Categories PRIMARY KEY CLUSTERED (CategoryId),
     CONSTRAINT UQ_Categories_Event_Name UNIQUE (EventId, Name),
+    CONSTRAINT UQ_Categories_Event_Category UNIQUE (EventId, CategoryId),
     CONSTRAINT CK_Categories_DistanceKm CHECK (DistanceKm > 0),
     CONSTRAINT CK_Categories_EntryFee CHECK (EntryFee >= 0),
     CONSTRAINT CK_Categories_Capacity CHECK (Capacity > 0),
@@ -131,4 +132,42 @@ GO
 
 CREATE INDEX IX_Categories_EventId_IsActive
     ON dbo.Categories (EventId, IsActive);
+GO
+
+CREATE TABLE dbo.EventEnrollments
+(
+    EnrollmentId       INT IDENTITY(1,1) NOT NULL,
+    EventId            INT NOT NULL,
+    CategoryId         INT NOT NULL,
+    ParticipantId      INT NOT NULL,
+    BibNumber          NVARCHAR(20) NULL,
+    Status             VARCHAR(20) NOT NULL CONSTRAINT DF_EventEnrollments_Status DEFAULT ('Pending'),
+    PaymentStatus      VARCHAR(20) NOT NULL CONSTRAINT DF_EventEnrollments_PaymentStatus DEFAULT ('Pending'),
+    FeePaid            DECIMAL(10,2) NOT NULL,
+    EmergencyConsent   BIT NOT NULL,
+    EnrolledAtUtc      DATETIME2(0) NOT NULL CONSTRAINT DF_EventEnrollments_EnrolledAtUtc DEFAULT (SYSUTCDATETIME()),
+    UpdatedAtUtc       DATETIME2(0) NULL,
+    CONSTRAINT PK_EventEnrollments PRIMARY KEY CLUSTERED (EnrollmentId),
+    CONSTRAINT UQ_EventEnrollments_Event_Participant UNIQUE (EventId, ParticipantId),
+    CONSTRAINT CK_EventEnrollments_Status CHECK (Status IN ('Pending', 'Confirmed', 'Withdrawn', 'Completed')),
+    CONSTRAINT CK_EventEnrollments_PaymentStatus CHECK (PaymentStatus IN ('Pending', 'Paid', 'Waived', 'Refunded')),
+    CONSTRAINT CK_EventEnrollments_FeePaid CHECK (FeePaid >= 0),
+    CONSTRAINT CK_EventEnrollments_Consent CHECK (EmergencyConsent = 1),
+    CONSTRAINT FK_EventEnrollments_Events FOREIGN KEY (EventId)
+        REFERENCES dbo.Events (EventId),
+    CONSTRAINT FK_EventEnrollments_Categories FOREIGN KEY (EventId, CategoryId)
+        REFERENCES dbo.Categories (EventId, CategoryId),
+    CONSTRAINT FK_EventEnrollments_Participants FOREIGN KEY (ParticipantId)
+        REFERENCES dbo.Users (UserId)
+);
+GO
+
+CREATE UNIQUE INDEX UX_EventEnrollments_Event_BibNumber
+    ON dbo.EventEnrollments (EventId, BibNumber)
+    WHERE BibNumber IS NOT NULL;
+GO
+
+CREATE INDEX IX_EventEnrollments_Participant_Status
+    ON dbo.EventEnrollments (ParticipantId, Status)
+    INCLUDE (EventId, CategoryId, BibNumber, EnrolledAtUtc);
 GO
