@@ -30,3 +30,39 @@ SET QUOTED_IDENTIFIER ON;
 SET XACT_ABORT ON;
 GO
 
+CREATE TABLE dbo.Users
+(
+    UserId          INT IDENTITY(1,1) NOT NULL,
+    Email           NVARCHAR(254) NOT NULL,
+    PasswordHash    NVARCHAR(255) NOT NULL,
+    FirstName       NVARCHAR(80) NOT NULL,
+    LastName        NVARCHAR(80) NOT NULL,
+    PhoneNumber     NVARCHAR(20) NULL,
+    Role            VARCHAR(20) NOT NULL,
+    IsActive        BIT NOT NULL CONSTRAINT DF_Users_IsActive DEFAULT (1),
+    CreatedAtUtc    DATETIME2(0) NOT NULL CONSTRAINT DF_Users_CreatedAtUtc DEFAULT (SYSUTCDATETIME()),
+    UpdatedAtUtc    DATETIME2(0) NULL,
+    CONSTRAINT PK_Users PRIMARY KEY CLUSTERED (UserId),
+    CONSTRAINT UQ_Users_Email UNIQUE (Email),
+    CONSTRAINT CK_Users_Email_Format CHECK (Email LIKE N'%_@_%._%'),
+    CONSTRAINT CK_Users_Role CHECK (Role IN ('Organiser', 'Participant'))
+);
+GO
+
+CREATE TABLE dbo.ParticipantProfiles
+(
+    ParticipantProfileId INT IDENTITY(1,1) NOT NULL,
+    UserId                INT NOT NULL,
+    DateOfBirth           DATE NOT NULL,
+    Gender                VARCHAR(20) NOT NULL,
+    EmergencyContactName  NVARCHAR(160) NOT NULL,
+    EmergencyContactPhone NVARCHAR(20) NOT NULL,
+    MedicalNotes          NVARCHAR(500) NULL,
+    ClubName              NVARCHAR(120) NULL,
+    CONSTRAINT PK_ParticipantProfiles PRIMARY KEY CLUSTERED (ParticipantProfileId),
+    CONSTRAINT UQ_ParticipantProfiles_UserId UNIQUE (UserId),
+    CONSTRAINT CK_ParticipantProfiles_Gender CHECK (Gender IN ('Female', 'Male', 'Non-binary', 'Prefer not to say')),
+    CONSTRAINT FK_ParticipantProfiles_Users FOREIGN KEY (UserId)
+        REFERENCES dbo.Users (UserId)
+);
+GO
