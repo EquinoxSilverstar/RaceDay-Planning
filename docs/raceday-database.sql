@@ -171,3 +171,38 @@ CREATE INDEX IX_EventEnrollments_Participant_Status
     ON dbo.EventEnrollments (ParticipantId, Status)
     INCLUDE (EventId, CategoryId, BibNumber, EnrolledAtUtc);
 GO
+
+CREATE TABLE dbo.Results
+(
+    ResultId             INT IDENTITY(1,1) NOT NULL,
+    EnrollmentId         INT NOT NULL,
+    RecordedByOrganiserId INT NOT NULL,
+    ResultStatus         VARCHAR(10) NOT NULL,
+    DurationMilliseconds BIGINT NULL,
+    OverallPosition      INT NULL,
+    CategoryPosition     INT NULL,
+    Notes                NVARCHAR(500) NULL,
+    RecordedAtUtc        DATETIME2(0) NOT NULL CONSTRAINT DF_Results_RecordedAtUtc DEFAULT (SYSUTCDATETIME()),
+    UpdatedAtUtc         DATETIME2(0) NULL,
+    CONSTRAINT PK_Results PRIMARY KEY CLUSTERED (ResultId),
+    CONSTRAINT UQ_Results_EnrollmentId UNIQUE (EnrollmentId),
+    CONSTRAINT CK_Results_Status CHECK (ResultStatus IN ('Finished', 'DNF', 'DNS', 'DSQ')),
+    CONSTRAINT CK_Results_Duration CHECK (DurationMilliseconds IS NULL OR DurationMilliseconds > 0),
+    CONSTRAINT CK_Results_OverallPosition CHECK (OverallPosition IS NULL OR OverallPosition > 0),
+    CONSTRAINT CK_Results_CategoryPosition CHECK (CategoryPosition IS NULL OR CategoryPosition > 0),
+    CONSTRAINT CK_Results_FinishedValues CHECK
+    (
+        ResultStatus <> 'Finished'
+        OR (DurationMilliseconds IS NOT NULL AND OverallPosition IS NOT NULL AND CategoryPosition IS NOT NULL)
+    ),
+    CONSTRAINT FK_Results_Enrollments FOREIGN KEY (EnrollmentId)
+        REFERENCES dbo.EventEnrollments (EnrollmentId),
+    CONSTRAINT FK_Results_RecordedByOrganiser FOREIGN KEY (RecordedByOrganiserId)
+        REFERENCES dbo.Users (UserId)
+);
+GO
+
+CREATE INDEX IX_Results_Status_Duration
+    ON dbo.Results (ResultStatus, DurationMilliseconds)
+    INCLUDE (EnrollmentId, OverallPosition, CategoryPosition);
+GO
