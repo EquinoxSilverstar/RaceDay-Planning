@@ -239,3 +239,33 @@ BEGIN CATCH
     THROW;
 END CATCH;
 GO
+
+BEGIN TRY
+    BEGIN TRANSACTION;
+
+    SET IDENTITY_INSERT dbo.Events ON;
+
+    INSERT INTO dbo.Events
+        (EventId, OrganiserId, Name, Description, EventType, StartDateTime, EndDateTime,
+         VenueName, AddressLine1, City, Province, PostalCode, RegistrationOpenUtc,
+         RegistrationCloseUtc, Status)
+    VALUES
+        (1, 1, N'Jozi Heritage Run 2027', N'A city road race through historic Johannesburg neighbourhoods with 5 km, 10 km, and half-marathon options.',
+         'Running', '2027-03-21T06:00:00', '2027-03-21T12:00:00', N'Old Parktonian Sports Club', N'1 Garden Road', N'Johannesburg', 'Gauteng', '2193',
+         '2026-10-01T06:00:00', '2027-03-15T21:59:59', 'Published'),
+        (2, 2, N'Cape Peninsula Cycle Tour 2027', N'A supported road-cycling event along the Cape Peninsula with recreational and endurance distances.',
+         'Cycling', '2027-04-11T05:30:00', '2027-04-11T16:00:00', N'Cape Town Stadium Forecourt', N'Fritz Sonnenberg Road', N'Cape Town', 'Western Cape', '8051',
+         '2026-11-01T06:00:00', '2027-04-04T21:59:59', 'Published'),
+        (3, 1, N'Durban Golden Mile Community Walk 2027', N'An inclusive coastal walk supporting local charities, with family and fitness categories.',
+         'Walking', '2027-05-02T07:00:00', '2027-05-02T11:00:00', N'North Beach Amphitheatre', N'Snell Parade', N'Durban', 'KwaZulu-Natal', '4001',
+         '2027-01-15T06:00:00', '2027-04-28T21:59:59', 'Published');
+
+    SET IDENTITY_INSERT dbo.Events OFF;
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;
+GO
