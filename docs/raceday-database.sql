@@ -206,3 +206,36 @@ CREATE INDEX IX_Results_Status_Duration
     ON dbo.Results (ResultStatus, DurationMilliseconds)
     INCLUDE (EnrollmentId, OverallPosition, CategoryPosition);
 GO
+
+BEGIN TRY
+    BEGIN TRANSACTION;
+
+    SET IDENTITY_INSERT dbo.Users ON;
+
+    INSERT INTO dbo.Users
+        (UserId, Email, PasswordHash, FirstName, LastName, PhoneNumber, Role, IsActive)
+    VALUES
+        (1, N'lerato@jozievents.co.za', N'$2b$12$8JmA4mvvVZmW5sVQGJpYIuYRWXASfROVU9Yj5O6XqQ8jzL5sA1Cye', N'Lerato', N'Mokoena', N'+27 82 555 0101', 'Organiser', 1),
+        (2, N'johan@capecycle.co.za', N'$2b$12$N8Lc7a0uXq4EwS1vJr6hYeKfAqWmUBG5Tz9Pn2DxCiV3oR7sH0Fke', N'Johan', N'van Wyk', N'+27 83 555 0202', 'Organiser', 1),
+        (3, N'nomsa.mthembu@example.co.za', N'$2b$12$4aQzK7mL9xV2bN6sP1cDeuF0YhJgT8rW5oUiE3pAqS7dZkC2vB9Xm', N'Nomsa', N'Mthembu', N'+27 71 555 0303', 'Participant', 1),
+        (4, N'ethan.jacobs@example.co.za', N'$2b$12$Z3wP8eR1tY6uI2oA9sDfGhJkL4cVbN7mQ0xC5zS6aW8dE1rT9yUiO', N'Ethan', N'Jacobs', N'+27 72 555 0404', 'Participant', 1);
+
+    SET IDENTITY_INSERT dbo.Users OFF;
+
+    SET IDENTITY_INSERT dbo.ParticipantProfiles ON;
+
+    INSERT INTO dbo.ParticipantProfiles
+        (ParticipantProfileId, UserId, DateOfBirth, Gender, EmergencyContactName, EmergencyContactPhone, MedicalNotes, ClubName)
+    VALUES
+        (1, 3, '1992-04-18', 'Female', N'Sipho Mthembu', N'+27 73 555 1313', N'Mild asthma; inhaler carried during events.', N'Durban Striders'),
+        (2, 4, '1987-11-02', 'Male', N'Megan Jacobs', N'+27 76 555 1414', NULL, N'Atlantic Athletic Club');
+
+    SET IDENTITY_INSERT dbo.ParticipantProfiles OFF;
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;
+GO
