@@ -52,6 +52,8 @@ The screenshot below records a successful run in which both the repository-struc
 
 ![Successful RaceDay GitHub Actions build](docs/ci-success.png)
 
+[View the successful clean-instance validation run](https://github.com/EquinoxSilverstar/RaceDay-Planning/actions/runs/33537811158).
+
 ## Video walkthrough
 
 **Unlisted YouTube video:** [Add the final RaceDay Part 1 walkthrough link before ARC submission](https://youtu.be/REPLACE_WITH_VIDEO_ID)
