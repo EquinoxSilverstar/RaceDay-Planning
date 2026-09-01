@@ -277,9 +277,9 @@ BEGIN TRY
          VenueName, AddressLine1, City, Province, PostalCode, RegistrationOpenUtc,
          RegistrationCloseUtc, Status)
     VALUES
-        (1, 1, N'Jozi Heritage Run 2027', N'A city road race through historic Johannesburg neighbourhoods with 5 km, 10 km, and half-marathon options.',
-         'Running', '2027-03-21T06:00:00', '2027-03-21T12:00:00', N'Old Parktonian Sports Club', N'1 Garden Road', N'Johannesburg', 'Gauteng', '2193',
-         '2026-10-01T06:00:00', '2027-03-15T21:59:59', 'Published'),
+        (1, 1, N'Jozi Heritage Run 2026', N'A city road race through historic Johannesburg neighbourhoods with 5 km, 10 km, and half-marathon options.',
+         'Running', '2026-03-21T06:00:00', '2026-03-21T12:00:00', N'Old Parktonian Sports Club', N'1 Garden Road', N'Johannesburg', 'Gauteng', '2193',
+         '2025-10-01T06:00:00', '2026-03-15T21:59:59', 'Completed'),
         (2, 2, N'Cape Peninsula Cycle Tour 2027', N'A supported road-cycling event along the Cape Peninsula with recreational and endurance distances.',
          'Cycling', '2027-04-11T05:30:00', '2027-04-11T16:00:00', N'Cape Town Stadium Forecourt', N'Fritz Sonnenberg Road', N'Cape Town', 'Western Cape', '8051',
          '2026-11-01T06:00:00', '2027-04-04T21:59:59', 'Published'),
@@ -288,6 +288,39 @@ BEGIN TRY
          '2027-01-15T06:00:00', '2027-04-28T21:59:59', 'Published');
 
     SET IDENTITY_INSERT dbo.Events OFF;
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;
+GO
+
+BEGIN TRY
+    BEGIN TRANSACTION;
+
+    SET IDENTITY_INSERT dbo.EventEnrollments ON;
+
+    INSERT INTO dbo.EventEnrollments
+        (EnrollmentId, EventId, CategoryId, ParticipantId, BibNumber, Status, PaymentStatus, FeePaid, EmergencyConsent, EnrolledAtUtc)
+    VALUES
+        (1, 1, 2, 3, N'JH10-031', 'Completed', 'Paid', 220.00, 1, '2026-01-12T08:14:00'),
+        (2, 1, 3, 4, N'JH21-142', 'Completed', 'Paid', 350.00, 1, '2026-01-15T17:32:00'),
+        (3, 2, 4, 3, N'CP42-088', 'Confirmed', 'Paid', 450.00, 1, '2026-11-08T10:05:00'),
+        (4, 3, 7, 4, N'DW10-057', 'Confirmed', 'Paid', 140.00, 1, '2027-01-20T12:47:00');
+
+    SET IDENTITY_INSERT dbo.EventEnrollments OFF;
+
+    SET IDENTITY_INSERT dbo.Results ON;
+
+    INSERT INTO dbo.Results
+        (ResultId, EnrollmentId, RecordedByOrganiserId, ResultStatus, DurationMilliseconds, OverallPosition, CategoryPosition, Notes, RecordedAtUtc)
+    VALUES
+        (1, 1, 1, 'Finished', 3425000, 84, 31, N'Official gun time verified by timing provider.', '2026-03-21T12:30:00'),
+        (2, 2, 1, 'DNF', NULL, NULL, NULL, N'Participant withdrew at the 15 km medical station.', '2026-03-21T12:35:00');
+
+    SET IDENTITY_INSERT dbo.Results OFF;
 
     COMMIT TRANSACTION;
 END TRY
