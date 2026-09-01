@@ -243,6 +243,33 @@ GO
 BEGIN TRY
     BEGIN TRANSACTION;
 
+    SET IDENTITY_INSERT dbo.Categories ON;
+
+    INSERT INTO dbo.Categories
+        (CategoryId, EventId, Name, Description, DistanceKm, EntryFee, Capacity, MinimumAge, MaximumAge, CategoryStartTime, IsActive)
+    VALUES
+        (1, 1, N'5 km Fun Run', N'Open community run suitable for new runners and families.', 5.00, 120.00, 500, 10, NULL, '07:30:00', 1),
+        (2, 1, N'10 km Road Race', N'Timed 10 km road race.', 10.00, 220.00, 1000, 15, NULL, '07:00:00', 1),
+        (3, 1, N'21.1 km Half Marathon', N'Timed half-marathon for experienced runners.', 21.10, 350.00, 1200, 18, NULL, '06:00:00', 1),
+        (4, 2, N'42 km Recreational Ride', N'Supported recreational route for developing cyclists.', 42.00, 450.00, 800, 15, NULL, '07:00:00', 1),
+        (5, 2, N'109 km Challenge', N'Full peninsula endurance route for experienced cyclists.', 109.00, 750.00, 1500, 18, NULL, '05:30:00', 1),
+        (6, 3, N'5 km Family Walk', N'Accessible family-focused coastal walk.', 5.00, 80.00, 600, 5, NULL, '08:00:00', 1),
+        (7, 3, N'10 km Fitness Walk', N'Brisk timed walking category along the promenade.', 10.00, 140.00, 500, 14, NULL, '07:30:00', 1),
+        (8, 3, N'20 km Endurance Walk', N'Long-distance category for conditioned walkers.', 20.00, 200.00, 300, 18, NULL, '07:00:00', 1);
+
+    SET IDENTITY_INSERT dbo.Categories OFF;
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;
+GO
+
+BEGIN TRY
+    BEGIN TRANSACTION;
+
     SET IDENTITY_INSERT dbo.Events ON;
 
     INSERT INTO dbo.Events
