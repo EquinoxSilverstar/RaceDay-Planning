@@ -102,3 +102,33 @@ CREATE INDEX IX_Events_Status_StartDateTime
     ON dbo.Events (Status, StartDateTime)
     INCLUDE (Name, EventType, City, Province);
 GO
+
+CREATE TABLE dbo.Categories
+(
+    CategoryId       INT IDENTITY(1,1) NOT NULL,
+    EventId          INT NOT NULL,
+    Name             NVARCHAR(100) NOT NULL,
+    Description      NVARCHAR(500) NULL,
+    DistanceKm       DECIMAL(7,2) NOT NULL,
+    EntryFee         DECIMAL(10,2) NOT NULL,
+    Capacity         INT NOT NULL,
+    MinimumAge       TINYINT NULL,
+    MaximumAge       TINYINT NULL,
+    CategoryStartTime TIME(0) NULL,
+    IsActive         BIT NOT NULL CONSTRAINT DF_Categories_IsActive DEFAULT (1),
+    CONSTRAINT PK_Categories PRIMARY KEY CLUSTERED (CategoryId),
+    CONSTRAINT UQ_Categories_Event_Name UNIQUE (EventId, Name),
+    CONSTRAINT CK_Categories_DistanceKm CHECK (DistanceKm > 0),
+    CONSTRAINT CK_Categories_EntryFee CHECK (EntryFee >= 0),
+    CONSTRAINT CK_Categories_Capacity CHECK (Capacity > 0),
+    CONSTRAINT CK_Categories_MinimumAge CHECK (MinimumAge IS NULL OR MinimumAge BETWEEN 5 AND 100),
+    CONSTRAINT CK_Categories_MaximumAge CHECK (MaximumAge IS NULL OR MaximumAge BETWEEN 5 AND 100),
+    CONSTRAINT CK_Categories_AgeRange CHECK (MinimumAge IS NULL OR MaximumAge IS NULL OR MaximumAge >= MinimumAge),
+    CONSTRAINT FK_Categories_Events FOREIGN KEY (EventId)
+        REFERENCES dbo.Events (EventId)
+);
+GO
+
+CREATE INDEX IX_Categories_EventId_IsActive
+    ON dbo.Categories (EventId, IsActive);
+GO
