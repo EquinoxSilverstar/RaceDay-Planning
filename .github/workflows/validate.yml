@@ -1,0 +1,103 @@
+name: Validate RaceDay planning submission
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  repository-structure:
+    name: Repository structure and planning files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out complete history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate required deliverables
+        shell: pwsh
+        run: ./scripts/validate-repository.ps1
+
+  clean-sql-server:
+    name: Execute script on clean SQL Server 2022
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MSSQL_SA_PASSWORD: RaceDay-CI-Only!2027Strong
+      SQL_CONTAINER: raceday-clean-sql
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Start a clean SQL Server instance
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach \
+            --name "$SQL_CONTAINER" \
+            --env ACCEPT_EULA=Y \
+            --env MSSQL_PID=Developer \
+            --env "MSSQL_SA_PASSWORD=$MSSQL_SA_PASSWORD" \
+            mcr.microsoft.com/mssql/server:2022-latest
+
+      - name: Wait for SQL Server readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..60}; do
+            if docker exec "$SQL_CONTAINER" test -x /opt/mssql-tools18/bin/sqlcmd; then
+              SQLCMD=/opt/mssql-tools18/bin/sqlcmd
+            else
+              SQLCMD=/opt/mssql-tools/bin/sqlcmd
+            fi
+
+            if docker exec "$SQL_CONTAINER" "$SQLCMD" \
+              -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b \
+              -Q "SET NOCOUNT ON; SELECT 1;" > /dev/null 2>&1; then
+              echo "SQL Server is ready."
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "SQL Server did not become ready in time."
+          docker logs "$SQL_CONTAINER"
+          exit 1
+
+      - name: Execute and verify RaceDay database script
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker cp docs/raceday-database.sql "$SQL_CONTAINER":/tmp/raceday-database.sql
+
+          if docker exec "$SQL_CONTAINER" test -x /opt/mssql-tools18/bin/sqlcmd; then
+            SQLCMD=/opt/mssql-tools18/bin/sqlcmd
+          else
+            SQLCMD=/opt/mssql-tools/bin/sqlcmd
+          fi
+
+          docker exec "$SQL_CONTAINER" "$SQLCMD" \
+            -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b \
+            -i /tmp/raceday-database.sql
+
+          docker exec "$SQL_CONTAINER" "$SQLCMD" \
+            -S localhost -U sa -P "$MSSQL_SA_PASSWORD" -C -b \
+            -d RaceDayDb \
+            -Q "SET NOCOUNT ON; IF (SELECT COUNT(*) FROM dbo.Users) <> 4 THROW 51001, 'Unexpected user count.', 1; IF (SELECT COUNT(*) FROM dbo.Events) <> 3 THROW 51002, 'Unexpected event count.', 1; IF (SELECT COUNT(*) FROM dbo.Categories) <> 8 THROW 51003, 'Unexpected category count.', 1; IF (SELECT COUNT(*) FROM dbo.EventEnrollments) <> 4 THROW 51004, 'Unexpected enrolment count.', 1; IF (SELECT COUNT(*) FROM dbo.Results) <> 2 THROW 51005, 'Unexpected result count.', 1; SELECT 'Clean SQL Server validation passed.' AS ValidationResult;"
+
+      - name: Print SQL Server logs after failure
+        if: failure()
+        shell: bash
+        run: docker logs "$SQL_CONTAINER" || true
+
+      - name: Stop clean SQL Server instance
+        if: always()
+        shell: bash
+        run: docker rm --force "$SQL_CONTAINER" || true
+
