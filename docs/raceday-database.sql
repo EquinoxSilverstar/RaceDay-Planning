@@ -66,3 +66,39 @@ CREATE TABLE dbo.ParticipantProfiles
         REFERENCES dbo.Users (UserId)
 );
 GO
+
+CREATE TABLE dbo.Events
+(
+    EventId               INT IDENTITY(1,1) NOT NULL,
+    OrganiserId           INT NOT NULL,
+    Name                  NVARCHAR(160) NOT NULL,
+    Description           NVARCHAR(2000) NOT NULL,
+    EventType             VARCHAR(20) NOT NULL,
+    StartDateTime         DATETIME2(0) NOT NULL,
+    EndDateTime           DATETIME2(0) NOT NULL,
+    TimeZoneId            NVARCHAR(64) NOT NULL CONSTRAINT DF_Events_TimeZoneId DEFAULT (N'South Africa Standard Time'),
+    VenueName             NVARCHAR(160) NOT NULL,
+    AddressLine1          NVARCHAR(160) NOT NULL,
+    City                  NVARCHAR(100) NOT NULL,
+    Province              VARCHAR(30) NOT NULL,
+    PostalCode            VARCHAR(10) NULL,
+    RegistrationOpenUtc   DATETIME2(0) NOT NULL,
+    RegistrationCloseUtc  DATETIME2(0) NOT NULL,
+    Status                VARCHAR(20) NOT NULL CONSTRAINT DF_Events_Status DEFAULT ('Draft'),
+    CreatedAtUtc          DATETIME2(0) NOT NULL CONSTRAINT DF_Events_CreatedAtUtc DEFAULT (SYSUTCDATETIME()),
+    UpdatedAtUtc          DATETIME2(0) NULL,
+    CONSTRAINT PK_Events PRIMARY KEY CLUSTERED (EventId),
+    CONSTRAINT CK_Events_EventType CHECK (EventType IN ('Running', 'Walking', 'Cycling')),
+    CONSTRAINT CK_Events_Province CHECK (Province IN ('Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal', 'Limpopo', 'Mpumalanga', 'Northern Cape', 'North West', 'Western Cape')),
+    CONSTRAINT CK_Events_Status CHECK (Status IN ('Draft', 'Published', 'Completed', 'Cancelled')),
+    CONSTRAINT CK_Events_DateRange CHECK (EndDateTime > StartDateTime),
+    CONSTRAINT CK_Events_RegistrationRange CHECK (RegistrationCloseUtc > RegistrationOpenUtc),
+    CONSTRAINT FK_Events_Organiser FOREIGN KEY (OrganiserId)
+        REFERENCES dbo.Users (UserId)
+);
+GO
+
+CREATE INDEX IX_Events_Status_StartDateTime
+    ON dbo.Events (Status, StartDateTime)
+    INCLUDE (Name, EventType, City, Province);
+GO
