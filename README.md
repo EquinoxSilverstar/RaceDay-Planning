@@ -48,7 +48,9 @@ The GitHub Actions workflow runs on every push and pull request to `main`. It pe
 1. validates the required repository files, PNG signature, six SQL entities, endpoint-plan coverage, README content, and minimum 20-commit history; and
 2. starts a clean SQL Server 2022 container, executes the complete script with error-stop behaviour, and verifies every seeded row count.
 
-The successful green-build screenshot will appear here after the repository's first GitHub Actions run.
+The screenshot below records a successful run in which both the repository-structure job and the clean SQL Server execution job completed with green checks.
+
+![Successful RaceDay GitHub Actions build](docs/ci-success.png)
 
 ## Video walkthrough
 
@@ -63,6 +65,6 @@ The recording should use the student's own voice and show the planning documents
 - [x] SQL Server script stored in `/docs`.
 - [x] At least 20 meaningful commits.
 - [x] GitHub Actions structure and clean SQL Server validation workflow.
-- [ ] Successful CI/CD screenshot embedded above.
+- [x] Successful CI/CD screenshot embedded above.
 - [ ] Placeholder YouTube link replaced with the unlisted walkthrough URL.
 - [ ] Final GitHub repository link submitted on ARC.
