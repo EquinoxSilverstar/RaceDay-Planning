@@ -54,7 +54,7 @@ The screenshot below records a successful run in which both the repository-struc
 
 ![Successful RaceDay GitHub Actions build](docs/ci-success.png)
 
-[View the successful clean-instance validation run](https://github.com/SilvestreFirmino/RaceDay-Planning/actions/runs/33743217884).
+[View the successful student-account clean-instance validation run](https://github.com/SilvestreFirmino/RaceDay-Planning/actions/runs/33749453678).
 
 ## Video walkthrough
 
