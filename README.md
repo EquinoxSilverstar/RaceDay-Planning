@@ -58,7 +58,7 @@ The screenshot below records a successful run in which both the repository-struc
 
 ## Video walkthrough
 
-**Unlisted YouTube video:** [Add the final RaceDay Part 1 walkthrough link before ARC submission](https://youtu.be/REPLACE_WITH_VIDEO_ID)
+**Unlisted YouTube video:** [Watch the RaceDay Part 1 walkthrough](https://youtu.be/imDPdiAGPVE)
 
 The recording should use the student's own voice and show the planning documents, explain the ERD and cardinality choices, justify the endpoint plan, run the SQL script live in SSMS, and display the successful output. No AI-generated voice should be used.
 
@@ -70,5 +70,5 @@ The recording should use the student's own voice and show the planning documents
 - [x] At least 20 meaningful commits.
 - [x] GitHub Actions structure and clean SQL Server validation workflow.
 - [x] Successful CI/CD screenshot embedded above.
-- [ ] Placeholder YouTube link replaced with the unlisted walkthrough URL.
+- [x] Unlisted YouTube walkthrough link added.
 - [ ] Final GitHub repository link submitted on ARC.
