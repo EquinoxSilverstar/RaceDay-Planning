@@ -1,6 +1,6 @@
 # RaceDay — South African Event Management System
 
-[![Validate RaceDay planning submission](https://github.com/EquinoxSilverstar/RaceDay-Planning/actions/workflows/validate.yml/badge.svg)](https://github.com/EquinoxSilverstar/RaceDay-Planning/actions/workflows/validate.yml)
+[![Validate RaceDay planning submission](https://github.com/SilvestreFirmino/RaceDay-Planning/actions/workflows/validate.yml/badge.svg)](https://github.com/SilvestreFirmino/RaceDay-Planning/actions/workflows/validate.yml)
 
 RaceDay is a planned full-stack, web-based event management system for South Africa's road running, walking, and cycling community. It replaces paper registrations, disconnected spreadsheets, and fragmented communication with one place to publish events, choose categories, manage entries, and record official results. This Part 1 repository defines the database and REST API contract that the C# API and MVC application will follow in Parts 2 and 3.
 
@@ -52,7 +52,7 @@ The screenshot below records a successful run in which both the repository-struc
 
 ![Successful RaceDay GitHub Actions build](docs/ci-success.png)
 
-[View the successful clean-instance validation run](https://github.com/EquinoxSilverstar/RaceDay-Planning/actions/runs/33537811158).
+[View the successful clean-instance validation run](https://github.com/SilvestreFirmino/RaceDay-Planning/actions/runs/33537811158).
 
 ## Video walkthrough
 
