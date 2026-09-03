@@ -43,6 +43,8 @@ All entity inserts run inside transactions with `XACT_ABORT ON`, and post-deploy
 
 ## CI/CD validation
 
+This public submission repository is owned by the student GitHub account [`SilvestreFirmino`](https://github.com/SilvestreFirmino), and the Git history uses the verified student email supplied for the project.
+
 The GitHub Actions workflow runs on every push and pull request to `main`. It performs two independent checks:
 
 1. validates the required repository files, PNG signature, six SQL entities, endpoint-plan coverage, README content, and minimum 20-commit history; and
