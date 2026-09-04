@@ -20,6 +20,7 @@ A Participant can register an account, maintain a personal and emergency-contact
 |---|---|---|
 | Entity Relationship Diagram | [`docs/raceday-erd.png`](docs/raceday-erd.png) | Six-entity visual model with attributes, keys, relationships, and cardinalities. |
 | ERD source | [`docs/raceday-erd.mmd`](docs/raceday-erd.mmd) | Version-controlled Mermaid source for the ERD. |
+| Technical references | [`docs/references.md`](docs/references.md) | Harvard-style references for external HTTP and SQL Server conventions. |
 | API endpoint plan | [`docs/endpoint-plan.md`](docs/endpoint-plan.md) | Route-by-route contract covering method, route, purpose, role, request, response, and failures. |
 | SQL Server script | [`docs/raceday-database.sql`](docs/raceday-database.sql) | Creates `RaceDayDb`, tables, keys, constraints, indexes, realistic sample data, and verification checks. |
 

@@ -6,11 +6,12 @@ This document is the implementation contract for the RaceDay REST API planned fo
 
 ## 2. API conventions
 
+- **HTTP semantics:** the HTTP methods and response status codes used in this plan follow the standard HTTP semantics defined by the Internet Engineering Task Force (IETF, 2022).
 - **Authentication:** protected routes require `Authorization: Bearer <JWT>`.
 - **Roles:** `Participant` and `Organiser` are encoded as claims in the authenticated identity. “Owner” means the current user owns the profile, enrolment, or event being changed.
 - **Dates:** API timestamps use ISO 8601. UTC fields end in `Utc`; event-local fields include the event's `timeZoneId`.
 - **Identifiers:** route IDs are positive integers. An invalid format returns `400 Bad Request`; a well-formed ID that does not exist returns `404 Not Found`.
-- **Validation errors:** `400 Bad Request` returns RFC 7807 `application/problem+json` with a field-level `errors` object.
+- **Validation errors:** `400 Bad Request` returns RFC 9457 `application/problem+json` with a field-level `errors` object (IETF, 2023).
 - **Authentication errors:** missing/invalid credentials return `401 Unauthorized`; a valid user without the required role or ownership returns `403 Forbidden`.
 - **Pagination:** list routes accept `page` (default `1`) and `pageSize` (default `20`, maximum `100`) and return `{ items, page, pageSize, totalCount }`.
 - **Deletion:** event/category deletion returns `409 Conflict` when dependent enrolments make deletion unsafe. The API should prefer lifecycle status changes once registrations exist.
@@ -98,3 +99,6 @@ Organiser accounts are provisioned by an authorised administrator or database de
 6. Database constraints provide the final defence for unique emails, event/category ownership, duplicate event entry, duplicate bibs, and one result per enrolment.
 7. API deletion rules intentionally avoid cascading deletes so assessed and operational history is not lost accidentally.
 
+## 11. References
+
+Full Harvard-style references for the external technical standards used in this plan are provided in [`references.md`](references.md).
