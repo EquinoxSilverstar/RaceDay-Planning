@@ -5,9 +5,6 @@ GO
 USE RaceDayDb;
 GO
 
--- Primary and foreign keys are used to enforce entity and referential integrity
--- in the RaceDay schema (Microsoft, 2026).
-
 -- All app users
 CREATE TABLE Users
 (
